@@ -1,1 +1,131 @@
+```{r}
+install.packages("rgbif")
+```
+```{r}
+library(rgbif)
+```
+
+example
+Records for Puma concolor
+w/ lat/long data (georeferened) only
+Note that hasCoordinate in occ_search() is the same as georeferenced in occ_count()
+```{r}
+#2435099 is Puma concolor?
+occ_count(taxonKey=2435099, georeferenced=TRUE)
+```
+
+All georeferenced records in GBIF
+```{r}
+occ_count(georeferenced=TRUE)
+```
+
+All records from 2012
+```{r}
+occ_count(year=2012)
+```
+
+
+occurence in Denmark.
+```{r}
+denmark_code <- isocodes[grep("Denmark", isocodes$name), "code"]
+occ_count(country=denmark_code)
+```
+
+In order to search for country, we need to use country code to specify country. The above code is searching for Denmark code in isocode file.
+```{r}
+head(isocodes)
+```
+
+???what's datasetkey???
+```{r}
+occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
+```
+
+Records for a particular dataset, and only for preserved specimens
+```{r}
+occ_count(datasetKey='e707e6da-e143-445d-b41d-529c4a777e8b', basisOfRecord='OBSERVATION')
+```
+
+?
+```{r}
+head(9e7ea106-0bf8-4087-bb61-dfe4f29e0f17)
+```
+-------------------------------------------------------------------------
+
+Possible taxonomic rank we can use in rgbif
+```{r}
+taxrank()
+# [1] "kingdom"       "phylum"        "class"         "order"        
+# [5] "family"        "genus"         "species"       "subspecies"   
+# [9] "infraspecific"
+```
+
+name_lookup()
+full text search of name usages covering the scientific and vernacular name, the species description, distribution and the entire classification across all name usages of all or some checklists.
+```{r}
+out <- name_lookup(query='mammalia')
+names(out)
+```
+
+
+Search for a genus
+```{r}
+search <- name_lookup(query='Cnaemidophorus', rank="genus", return="data")
+head(search)
+```
+```{r}
+head(name_lookup(query='mammalia', return = 'data'))
+```
+
+
+```{r}
+sp <- name_lookup(query = 'Helianthus annuus', rank="species", return = 'data')
+head(sp)
+```
+
+
+
+name_usage() ???
+name_backbone() ???
+
+
+name_suggest() is optimized for speed, and gives back suggested names based on query parameters.
+```{r}
+head(name_suggest(q='Puma concolor'))
+```
+
+-------------------------------------------------------------------------
+
+single occurence
+```{r}
+occ_get(key=240713150, return='data')
+```
+
+```{r}
+occ_get(key=240713150, return='hier')
+```
+
+```{r}
+occ_get(key=240713150, return='all')
+```
+
+multiple occurences
+```{r}
+occ_get(key=c(101010, 240713150, 855998194), return='data')
+```
+
+search for specific taxa
+```{r}
+occ_search(scientificName = "Ursus americanus", limit = 20)
+```
+
+```{r}
+key <- name_backbone(name='Puma concolor')$speciesKey
+dat <- occ_search(taxonKey=key, return='data', limit=300)
+```
+```{r}
+library(ggplot2)
+#use mapr package?
+mapr(dat)
+```
 

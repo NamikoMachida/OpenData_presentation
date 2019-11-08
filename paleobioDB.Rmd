@@ -1,0 +1,11 @@
+```{r}
+install.packages("paleobioDB.Rmd")
+```
+
+```{r}
+library(raster)
+library(sp)
+library(maps)
+library(paleobioDB)
+```
+
