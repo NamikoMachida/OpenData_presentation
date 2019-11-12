@@ -1,4 +1,9 @@
-```{r}
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r eval=FALSE, include=FALSE}
 install.packages("rgbif")
 ```
 ```{r}
@@ -6,91 +11,181 @@ library(rgbif)
 ```
 
 example
-Records for Puma concolor
+
+1, Counting occurence records
+```{r}
+# occurence counts of GBIF data (all)
+# Type of observations.
+occ_count()
+occ_count(basisOfRecord='OBSERVATION')
+occ_count(basisOfRecord='HUMAN_OBSERVATION')
+occ_count(basisOfRecord='MACHINE_OBSERVATION')
+occ_count(basisOfRecord='LITERATURE')
+occ_count(basisOfRecord='LIVING_SPECIMEN')
+occ_count(basisOfRecord='FOSSIL_SPECIMEN')
+```
+
+```{r}
+occ_count(georeferenced = TRUE)
+```
+
+Records for Ragweed.
 w/ lat/long data (georeferened) only
 Note that hasCoordinate in occ_search() is the same as georeferenced in occ_count()
 ```{r}
-#2435099 is Puma concolor?
-occ_count(taxonKey=2435099, georeferenced=TRUE)
-```
-
-All georeferenced records in GBIF
-```{r}
-occ_count(georeferenced=TRUE)
+# Ragweed (Genus:Ambrosia) is 3110576.
+occ_count(taxonKey=3110576)
 ```
 
 All records from 2012
 ```{r}
-occ_count(year=2012)
+occ_count(year = 2012)
+```
+
+```{r}
+# Ragweed (Genus:Ambrosia) is 3110576.
+# By human observation
+# Rag weed
+# Has long/lat data
+occ_count(basisOfRecord='HUMAN_OBSERVATION', taxonKey=3110576, georeferenced = TRUE)
 ```
 
 
-occurence in Denmark.
-```{r}
-denmark_code <- isocodes[grep("Denmark", isocodes$name), "code"]
-occ_count(country=denmark_code)
-```
 
-In order to search for country, we need to use country code to specify country. The above code is searching for Denmark code in isocode file.
+Country code
 ```{r}
+# Country codes are stored in isocodes.csv.
 head(isocodes)
 ```
 
-???what's datasetkey???
+
+E.g. occurence records of ragweed in USA.
 ```{r}
-occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
+usa_code <- isocodes[grep("United States of America", isocodes$name), "code"]
+occ_count(basisOfRecord='HUMAN_OBSERVATION', country=usa_code, taxonKey=3110576, georeferenced = TRUE)
 ```
 
-Records for a particular dataset, and only for preserved specimens
+
+seach for data of specific taxon.
 ```{r}
-occ_count(datasetKey='e707e6da-e143-445d-b41d-529c4a777e8b', basisOfRecord='OBSERVATION')
+spdata <- name_lookup(query="Ambrosia", rank="genus", return="data")
+head(spdata)
+```
+```{r}
+taxonkey <- spdata[1, "nubKey"]
+taxonkey
 ```
 
-?
 ```{r}
-head(9e7ea106-0bf8-4087-bb61-dfe4f29e0f17)
+spdata2 <- name_usage(name = "Ambrosia", rank = "genus", return = "data")
 ```
--------------------------------------------------------------------------
 
-Possible taxonomic rank we can use in rgbif
+If you are unsure about taxonomic names and their keys.
+```{r}
+name_suggest(q='Plasmodium', rank = "genus")
+```
+```{r}
+name_suggest(q='Ambrosia')
+```
+
+
+```{r}
+spbkbn <- name_backbone(name='Ambrosia', kingdom='plants')
+spbkbn
+```
+
+If you are unsure about what kind of taxonomic rank can be used.
 ```{r}
 taxrank()
-# [1] "kingdom"       "phylum"        "class"         "order"        
-# [5] "family"        "genus"         "species"       "subspecies"   
-# [9] "infraspecific"
-```
-
-name_lookup()
-full text search of name usages covering the scientific and vernacular name, the species description, distribution and the entire classification across all name usages of all or some checklists.
-```{r}
-out <- name_lookup(query='mammalia')
-names(out)
 ```
 
 
-Search for a genus
-```{r}
-search <- name_lookup(query='Cnaemidophorus', rank="genus", return="data")
-head(search)
+Data for a single occurence. Requires occurrence key!
 ```
-```{r}
-head(name_lookup(query='mammalia', return = 'data'))
+occ_get(key=3110588, return='data')
 ```
 
+Search for occurence data in sp level. 
+```{r}
+key <- name_backbone(name='Ambrosia aptera')$speciesKey
+spdat <- occ_search(taxonKey=key, return='data', limit=300)
+```
+Search for occurence data of all species in the specified genus. 
+```{r}
+gendat <- occ_search(taxonKey=3110576, return='data', limit=300)
+```
+
+Plot on map
+```
+library(ggplot2)
+#use mapr package?
+ggplot(dat)
+```
+
+------------------------------------------------------------------------------
+```{r}
+# Example: Malaria parasite, Genus Plasmodium.
+occ_malaria <- occ_search(taxonKey=8364053, return='data')
+library(ggplot2)
+library(maps)
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "gray40", size = .3) +
+geom_jitter(data = occ_malaria,
+aes(decimalLongitude, decimalLatitude), alpha=0.6, 
+             size = 3, color = "red")
+```
+
+mapping experiment
+```{r}
+x <- map_fetch(taxonKey = 3110576, y = 0, srs = "EPSG:3857")
+plot(x)
+```
+
 
 ```{r}
-sp <- name_lookup(query = 'Helianthus annuus', rank="species", return = 'data')
-head(sp)
+## Not run:
+if (
+requireNamespace("png", quietly = TRUE) &&
+requireNamespace("raster", quietly = TRUE)
+) {
+x <- map_fetch(taxonKey = 3110576)
+x
+# gives a RasterLayer object
+class(x)
+# visualize
+library(raster)
+plot(x)
+# different srs
+## 3857
+y <- map_fetch(taxonKey = 3110576, srs = "EPSG:3857")
+plot(y)
+## 3031
+z <- map_fetch(taxonKey = 3110576, srs = "EPSG:3031", verbose = TRUE)
+plot(z)
+# 3575
+z <- map_fetch(taxonKey = 3110576, srs = "EPSG:3575")
+plot(z)
+# bin
+plot(map_fetch(taxonKey = 3110576, bin = "hex",
+hexPerTile = 30, style = "classic-noborder.poly"))
+# styles
+plot(map_fetch(taxonKey = 3110576, style = "purpleYellow.point"))
+# query with basisOfRecord
+map_fetch(taxonKey = 3110576, basisOfRecord = "HUMAN_OBSERVATION")
+map_fetch(taxonKey = 3110576, basisOfRecord = c("HUMAN_OBSERVATION", "LIVING_SPECIMEN"))
+}
+## End(Not run)
 ```
 
 
 
-name_usage() ???
-name_backbone() ???
 
 
-name_suggest() is optimized for speed, and gives back suggested names based on query parameters.
-```{r}
+
+-----------------------------------------------------------------------------------
+name_suggest() is optimized for speed, and gives back suggested names based on query parameters.```{r}
 head(name_suggest(q='Puma concolor'))
 ```
 
@@ -129,3 +224,14 @@ library(ggplot2)
 mapr(dat)
 ```
 
+
+
+
+
+
+
+
+???what's datasetkey???
+```{r}
+occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
+```
