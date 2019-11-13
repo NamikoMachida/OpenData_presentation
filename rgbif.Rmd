@@ -12,7 +12,7 @@ library(rgbif)
 
 
 
-1, Counting occurence records
+# Counting occurence records
 ```{r}
 # occurence counts of GBIF data (all)
 # Type of observations.
@@ -41,35 +41,94 @@ occ_count(year = 2012)
 ```
 
 ```{r}
-# Ragweed (Genus:Ambrosia) is 3110576.
+# Ragweed (Genus:Ambrosia, taxonKey= 3110576).
 # By human observation
-# Rag weed
+# In United States (country code = US)
 # Has long/lat data
-occ_count(basisOfRecord='HUMAN_OBSERVATION', taxonKey=3110576, georeferenced = TRUE)
+occ_count(basisOfRecord='HUMAN_OBSERVATION', country = "US", taxonKey=3110588, georeferenced = TRUE)
+```
+
+acceptable set
+```
+• basisOfRecord, country
+• basisOfRecord, country, isGeoreferenced
+• basisOfRecord, country, isGeoreferenced, taxonKey
+• basisOfRecord, country, taxonKey
+• basisOfRecord, datasetKey
+• basisOfRecord, datasetKey, isGeoreferenced
+• basisOfRecord, datasetKey, isGeoreferenced, taxonKey
+• basisOfRecord, datasetKey, taxonKey
+• basisOfRecord, isGeoreferenced, taxonKey
+• basisOfRecord, isGeoreferenced, publishingCountry
+• basisOfRecord, isGeoreferenced, publishingCountry, taxonKey
+• basisOfRecord, publishingCountry
+• basisOfRecord, publishingCountry, taxonKey
+• basisOfRecord, taxonKey
+• country
+• country, datasetKey, isGeoreferenced
+• country, isGeoreferenced
+• country, isGeoreferenced, publishingCountry
+• country, isGeoreferenced, taxonKey
+• country, publishingCountry
+• country, taxonKey
+• country, typeStatus
+• datasetKey
+• datasetKey, isGeoreferenced
+• datasetKey, isGeoreferenced, taxonKey
+• datasetKey, issue
+• datasetKey, taxonKey
+• datasetKey, typeStatus
+• isGeoreferenced
+• isGeoreferenced, publishingCountry
+• isGeoreferenced, publishingCountry, taxonKey
+• isGeoreferenced, taxonKey
+• issue
+• publishingCountry
+• publishingCountry, taxonKey
+• publishingCountry, typeStatus
+• taxonKey
+• taxonKey, typeStatus
+• typeStatus
+• protocol
+• year
 ```
 
 
 
-Country code
+# how to get taxon key.
+Why is the usageKey and taxonKey are different? === synonim problem!!
+```{r}
+name_backbone(name='Ambrosia', rank = "genus")$genusKey
+name_backbone(name='Ambrosia aptera', rank = "species")$speciesKey
+```
+
+# How to get country code
 ```{r}
 # Country codes are stored in isocodes.csv.
 head(isocodes)
 ```
 
-
 E.g. occurence records of ragweed in USA.
 ```{r}
-key <- name_backbone(name='Ambrosia aptera')$speciesKey
+key <- name_backbone(name = 'Ambrosia aptera', rank = "species")$speciesKey
 usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
-occ_count(basisOfRecord='HUMAN_OBSERVATION', country=usa_code, taxonKey=key, georeferenced = TRUE)
+occ_count(basisOfRecord = 'HUMAN_OBSERVATION', taxonKey = key, country = usa_code, georeferenced = TRUE)
 ```
 
-
-seach for data of specific taxon.
+-------------------------------------------------------------------------
+# If you seach for infomation about specific taxon.
 ```{r}
 spdata <- name_lookup(query="Ambrosia", rank="genus", return="data")
 head(spdata)
 ```
+```{r}
+res <- name_lookup(query='canada', hl=TRUE, limit=5)
+gbif_names(res)
+```
+
+
+
+
 
 ```
 taxonkey <- spdata[1, "nubKey"]
