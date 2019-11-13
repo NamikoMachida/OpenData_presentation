@@ -10,7 +10,7 @@ install.packages("rgbif")
 library(rgbif)
 ```
 
-example
+
 
 1, Counting occurence records
 ```{r}
@@ -30,8 +30,6 @@ occ_count(georeferenced = TRUE)
 ```
 
 Records for Ragweed.
-w/ lat/long data (georeferened) only
-Note that hasCoordinate in occ_search() is the same as georeferenced in occ_count()
 ```{r}
 # Ragweed (Genus:Ambrosia) is 3110576.
 occ_count(taxonKey=3110576)
@@ -61,8 +59,9 @@ head(isocodes)
 
 E.g. occurence records of ragweed in USA.
 ```{r}
-usa_code <- isocodes[grep("United States of America", isocodes$name), "code"]
-occ_count(basisOfRecord='HUMAN_OBSERVATION', country=usa_code, taxonKey=3110576, georeferenced = TRUE)
+key <- name_backbone(name='Ambrosia aptera')$speciesKey
+usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
+occ_count(basisOfRecord='HUMAN_OBSERVATION', country=usa_code, taxonKey=key, georeferenced = TRUE)
 ```
 
 
@@ -71,13 +70,15 @@ seach for data of specific taxon.
 spdata <- name_lookup(query="Ambrosia", rank="genus", return="data")
 head(spdata)
 ```
-```{r}
+
+```
 taxonkey <- spdata[1, "nubKey"]
 taxonkey
 ```
 
 ```{r}
 spdata2 <- name_usage(name = "Ambrosia", rank = "genus", return = "data")
+head(spdata2)
 ```
 
 If you are unsure about taxonomic names and their keys.
@@ -106,6 +107,7 @@ occ_get(key=3110588, return='data')
 ```
 
 Search for occurence data in sp level. 
+Note that hasCoordinate in occ_search() is the same as georeferenced in occ_count()
 ```{r}
 key <- name_backbone(name='Ambrosia aptera')$speciesKey
 spdat <- occ_search(taxonKey=key, return='data', limit=300)
@@ -115,6 +117,15 @@ Search for occurence data of all species in the specified genus.
 gendat <- occ_search(taxonKey=3110576, return='data', limit=300)
 ```
 
+
+country&taxonkey
+```{r}
+key <- name_backbone(name='Ambrosia aptera')$speciesKey
+usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
+gendat <- occ_search(taxonKey=key, country=usa_code, return='data', limit=300)
+```
+
+
 Plot on map
 ```
 library(ggplot2)
@@ -122,7 +133,7 @@ library(ggplot2)
 ggplot(dat)
 ```
 
-------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 ```{r}
 # Example: Malaria parasite, Genus Plasmodium.
 occ_malaria <- occ_search(taxonKey=8364053, return='data')
