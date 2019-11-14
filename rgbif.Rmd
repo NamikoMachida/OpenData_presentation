@@ -92,9 +92,45 @@ acceptable set
 • protocol
 • year
 ```
+---------------------------------------------------------------------
+? facetted count?
+dataset usage??
+```{r}
+spplist <- c('Geothlypis trichas','Tiaris olivacea','Pterodroma axillaris','Calidris ferruginea','Pterodroma macroptera',
+'Gallirallus australis','Falco cenchroides','Telespiza cantans','Oreomystis bairdi','Cistothorus palustris')
+keys <- sapply(spplist, function(x) name_backbone(x, rank="species")$usageKey)
+count_facet(keys, by='country', countries=3, removezeros = TRUE)
+```
+```{r}
+dataset_suggest(query="Amazon", type="OCCURRENCE")
+```
+```{r}
+isocodes[agrep("UNITED", isocodes$gbif_name),]
+dataset_suggest(country="US", limit = 25)
+```
 
 
 
+
+
+
+
+
+
+---------------------------------------------------------------------
+# get a citation info for dataset or occurence data.
+```{r}
+res1 <- occ_search(taxonKey=9206251, limit=2)
+xx <- gbif_citation(res1)
+xx[[2]]$citation$text
+```
+```{r}
+res3 <- occ_search(taxonKey=9206251, fields=c('name','basisOfRecord','key'),limit=5)
+xx <- gbif_citation(res3)
+xx[[2]]$citation$text
+```
+
+----------------------------------------------------------------------
 # how to get taxon key.
 Why is the usageKey and taxonKey are different? === synonim problem!!
 ```{r}
@@ -115,7 +151,7 @@ usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
 occ_count(basisOfRecord = 'HUMAN_OBSERVATION', taxonKey = key, country = usa_code, georeferenced = TRUE)
 ```
 
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 # If you seach for infomation about specific taxon.
 ```{r}
 spdata <- name_lookup(query="Ambrosia", rank="genus", return="data")
@@ -125,7 +161,11 @@ head(spdata)
 res <- name_lookup(query='canada', hl=TRUE, limit=5)
 gbif_names(res)
 ```
-
+# name viewer gbif_names
+```{r}
+occsrc_Ursus <- name_lookup(query="Ursus americanus", limit=20)
+gbif_names(occsrc_Ursus)
+```
 
 
 
@@ -154,18 +194,13 @@ spbkbn <- name_backbone(name='Ambrosia', kingdom='plants')
 spbkbn
 ```
 
-If you are unsure about what kind of taxonomic rank can be used.
+# If you are unsure about what kind of taxonomic rank can be used.
 ```{r}
 taxrank()
 ```
 
-
-Data for a single occurence. Requires occurrence key!
-```
-occ_get(key=3110588, return='data')
-```
-
-Search for occurence data in sp level. 
+------------------------------------------------------------------------------------
+# Search for occurence data in sp level. 
 Note that hasCoordinate in occ_search() is the same as georeferenced in occ_count()
 ```{r}
 key <- name_backbone(name='Ambrosia aptera')$speciesKey
@@ -176,8 +211,32 @@ Search for occurence data of all species in the specified genus.
 gendat <- occ_search(taxonKey=3110576, return='data', limit=300)
 ```
 
+search for specific taxa
+```{r}
+occ_search(scientificName = "Ursus americanus", limit = 20)
+```
 
-country&taxonkey
+accept many values by using c().
+```{r}
+manyvalue_test <- occ_search(scientificName = c("Ursus americanus", "Ambrosia aptera"), return = "data")
+# output will be a list.
+head(manyvalue_test[1])
+head(manyvalue_test[2])
+```
+
+
+-------------------------------------------------------------------
+# browse photos
+```{r}
+res <- occ_search(taxonKey=3110576, mediaType = 'StillImage', return = "media")
+gbif_photos(res, output = "./", which='table')
+```
+
+
+
+
+---------------------------------------------------------------------
+# country&taxonkey
 ```{r}
 key <- name_backbone(name='Ambrosia aptera')$speciesKey
 usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
@@ -185,35 +244,75 @@ gendat <- occ_search(taxonKey=key, country=usa_code, return='data', limit=300)
 ```
 
 
-Plot on map
-```
-library(ggplot2)
-#use mapr package?
-ggplot(dat)
+Cynodon dactylon
+```{r}
+name_backbone(name='Cynodon dactylon')$speciesKey
 ```
 
-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
+# Plot on map
 ```{r}
-# Example: Malaria parasite, Genus Plasmodium.
-occ_malaria <- occ_search(taxonKey=8364053, return='data')
 library(ggplot2)
 library(maps)
-world <- map_data("world")
-ggplot(world, aes(long, lat)) +
-geom_polygon(aes(group = group), fill = "white", 
-              color = "gray40", size = .3) +
-geom_jitter(data = occ_malaria,
-aes(decimalLongitude, decimalLatitude), alpha=0.6, 
-             size = 3, color = "red")
 ```
 
-mapping experiment
 ```{r}
-x <- map_fetch(taxonKey = 3110576, y = 0, srs = "EPSG:3857")
+# Example: Bermuda grass.
+occ_Bmdgrs <- occ_search(taxonKey=6109637, hasCoordinate = TRUE, return='data')
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+ggtitle("Bermuda grass") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = occ_Bmdgrs,
+aes(decimalLongitude, decimalLatitude), alpha=0.6, 
+             size = 1.5, color = "red", show.legend = TRUE)
+```
+```{r}
+# Example: ragweed.
+occ_ragweed <- occ_search(taxonKey=3110576, country = "US", return='data')
+world <- map_data("usa")
+ggplot(world, aes(long, lat)) +
+ggtitle("Ragweed") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = occ_ragweed,
+aes(decimalLongitude, decimalLatitude), alpha=0.6, 
+             size = 2, color = "red")
+```
+
+
+Use mapr map_ggplot. This works!
+```{r}
+library(mapr)
+```
+Example: Bermuda grass
+```{r}
+# usa.
+occ_bmdgrs <- occ_search(taxonKey=6109637, country = "US", hasCoordinate=TRUE)
+map_ggplot(occ_bmdgrs, map = "usa", size = 2)
+```
+Example: Ragweed
+```{r}
+# usa.
+occ_ragweed <- occ_search(taxonKey=3110576, country = "US", hasCoordinate=TRUE)
+map_ggplot(occ_ragweed, map = "usa", size = 2)
+```
+```{r}
+# world.
+occ_ragweed <- occ_search(taxonKey=3110576, hasCoordinate=TRUE)
+map_ggplot(occ_ragweed, map = "world", size = 2)
+```
+
+
+
+map_fetch doesn't work well.
+```{r}
+x <- map_fetch(source = "density", format = "@1x.png", srs = "EPSG:3857", bin = "hex", hexPerTile = 1, params = (taxonKey = 3110576, country = "US"))
 plot(x)
 ```
 
-
+-------------------------------------------------------------------------
 ```{r}
 ## Not run:
 if (
@@ -255,51 +354,17 @@ map_fetch(taxonKey = 3110576, basisOfRecord = c("HUMAN_OBSERVATION", "LIVING_SPE
 
 
 -----------------------------------------------------------------------------------
-name_suggest() is optimized for speed, and gives back suggested names based on query parameters.```{r}
+name_suggest() is optimized for speed, and gives back suggested names based on query parameters.
+```{r}
 head(name_suggest(q='Puma concolor'))
 ```
 
--------------------------------------------------------------------------
-
-single occurence
-```{r}
-occ_get(key=240713150, return='data')
-```
-
-```{r}
-occ_get(key=240713150, return='hier')
-```
-
-```{r}
-occ_get(key=240713150, return='all')
-```
+------------------------------------------------------------------------------------
 
 multiple occurences
 ```{r}
 occ_get(key=c(101010, 240713150, 855998194), return='data')
 ```
-
-search for specific taxa
-```{r}
-occ_search(scientificName = "Ursus americanus", limit = 20)
-```
-
-```{r}
-key <- name_backbone(name='Puma concolor')$speciesKey
-dat <- occ_search(taxonKey=key, return='data', limit=300)
-```
-```{r}
-library(ggplot2)
-#use mapr package?
-mapr(dat)
-```
-
-
-
-
-
-
-
 
 ???what's datasetkey???
 ```{r}
