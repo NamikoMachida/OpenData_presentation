@@ -5,6 +5,7 @@ output:
 ---
 ```{r eval=FALSE, include=FALSE}
 install.packages("rgbif")
+install.packages("mapr")
 ```
 ```{r}
 library(rgbif)
@@ -227,7 +228,7 @@ head(manyvalue_test[2])
 
 -------------------------------------------------------------------
 # browse photos
-```{r}
+```
 res <- occ_search(taxonKey=3110576, mediaType = 'StillImage', return = "media")
 gbif_photos(res, output = "./", which='table')
 ```
@@ -280,6 +281,19 @@ geom_jitter(data = occ_ragweed,
 aes(decimalLongitude, decimalLatitude), alpha=0.6, 
              size = 2, color = "red")
 ```
+
+```{r}
+# Example: Bermuda grass.
+occ_Zika <- occ_search(scientificName = "Flavivirus", hasCoordinate = TRUE, return='data')
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+ggtitle("Spread of Zika virus -2019") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = occ_Zika, aes(decimalLongitude, decimalLatitude, color = year), alpha=0.6, size = 3, show.legend = TRUE) +
+scale_color_gradient(name="Year", low="blue", high="red2")
+```
+
 
 
 Use mapr map_ggplot. This works!
@@ -370,3 +384,18 @@ occ_get(key=c(101010, 240713150, 855998194), return='data')
 ```{r}
 occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
 ```
+
+
+
+
+
+
+# download experiment
+
+> user <- "namiko"
+> pwd <- "735seibutsu"
+> email <- "nm0076@mix.wvu.edu"
+> occ_download('taxonKey = 3119195', user = user, pwd = pwd, email = email)
+
+
+
