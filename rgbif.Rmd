@@ -250,6 +250,131 @@ Cynodon dactylon
 name_backbone(name='Cynodon dactylon')$speciesKey
 ```
 
+
+
+
+
+
+
+-----------------------------------------------------------------------------------
+name_suggest() is optimized for speed, and gives back suggested names based on query parameters.
+```{r}
+head(name_suggest(q='Puma concolor'))
+```
+
+------------------------------------------------------------------------------------
+
+multiple occurences
+```{r}
+occ_get(key=c(101010, 240713150, 855998194), return='data')
+```
+
+???what's datasetkey???
+```{r}
+occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
+```
+
+--------------------------------------------------------------------------------------------
+# Download occurence data >500
+
+Set user name, passward, email as object.
+```{r}
+user <- "namiko"
+pwd <- "735seibutsu"
+email <- "nm0076@mix.wvu.edu"
+```
+
+Prepare for download
+# DWCA: Darwin Core Archive
+```{r}
+#Ambrosia aptera:3110588
+#country:USA
+dl_DWCA <- occ_download('taxonKey = 3110588', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
+dl_DWCA
+```
+Wait for 15 min!?
+Save file to your computer.
+```{r}
+# key: "0007911-191105090559680"
+# File 413 KB Simple
+# Involved datasets 84
+# Occurrences 5,695
+occ_download_get(key = dl_DWCA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+# Import
+res <- occ_download_get(key = "0007911-191105090559680", path = "./", overwrite=TRUE)
+DWCA_data <- occ_download_import(res)
+# 237 columns!
+# specify columns and extract them
+newdata <- DWCA_data[,c("taxonID", "scientificNameID", "kingdom", "phylum", "class", "order", "family", "genus", "subgenus", "specificEpithet", "decimalLatitude", "decimalLongitude", "year", "continent", "county", "georeferenceProtocol", "georeferenceSources", "georeferenceVerificationStatus", "georeferenceRemarks")]
+newdata <- newdata[!is.na(newdata$decimalLatitude),]
+# plot the data by using ggplot.
+usa <- map_data("usa")
+ggplot(usa, aes(long, lat)) +
+ggtitle("Ambrosia aptera in USA") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = newdata, aes(decimalLongitude, decimalLatitude), alpha=0.6, size = 2, show.legend = TRUE, color = "red")
+```
+
+# Download Ambrosia genus (TEMPLATE!)
+plot by species
+```{r}
+#Ambrosia:3110576 as genus
+#country:USA
+Ambrosia_usa_DWCA <- occ_download('taxonKey = 3110576', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
+Ambrosia_usa_DWCA
+```
+```{r}
+# key: "0007972-191105090559680"
+# File 413 KB Simple
+# Involved datasets 84
+# Occurrences 30,007
+res <- occ_download_get(key = Ambrosia_usa_DWCA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+Ambrosia_usa_data <- occ_download_import(res)
+
+Ambrosia_usa_data_col <- Ambrosia_usa_data[,c("taxonID", "scientificNameID", "kingdom", "phylum", "class", "order", "family", "genus", "subgenus", "specificEpithet", "decimalLatitude", "decimalLongitude", "year", "continent", "county", "georeferenceProtocol", "georeferenceSources", "georeferenceVerificationStatus", "georeferenceRemarks")]
+Ambrosia_usa_data_col <- Ambrosia_usa_data_col[!is.na(Ambrosia_usa_data_col$decimalLatitude),]
+
+usa <- map_data("usa")
+ggplot(usa, aes(long, lat)) +
+ggtitle("Species distribution of ragweed (genus Ambrosia)") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = Ambrosia_usa_data_col, aes(decimalLongitude, decimalLatitude, color = specificEpithet), alpha=1, size = 1, show.legend = TRUE) +
+coord_map(xlim = c(-130, -60), ylim = c(20, 50)) +
+theme(legend.position="bottom", legend.box = "horizontal", legend.text  = element_text(size = 7), legend.key.size = unit(0.1, "lines"))
+```
+
+# Download Zika virus (TEMPLATE!)
+plot by year
+```{r}
+#Zika virus: 9848767 as genus Flavivirus
+ZikaVirus_DWCA <- occ_download('taxonKey = 9848767', format = "DWCA", user = user, pwd = pwd, email = email)
+ZikaVirus_DWCA
+```
+```{r}
+# key: "0007974-191105090559680"
+# File 413 KB Simple
+# Involved datasets 84
+# Occurrences 30,007
+res <- occ_download_get(key = ZikaVirus_DWCA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+ZikaVirus_data <- occ_download_import(res)
+
+ZikaVirus_data_col <- ZikaVirus_data[,c("taxonID", "scientificNameID", "kingdom", "phylum", "class", "order", "family", "genus", "subgenus", "specificEpithet", "decimalLatitude", "decimalLongitude", "year", "continent", "county", "georeferenceProtocol", "georeferenceSources", "georeferenceVerificationStatus", "georeferenceRemarks")]
+ZikaVirus_data_col <- ZikaVirus_data_col[!is.na(ZikaVirus_data_col$decimalLatitude),]
+
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+ggtitle("Spread of Zika virus -2019") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = ZikaVirus_data_col, aes(decimalLongitude, decimalLatitude, color = year), alpha=1, size = 3, show.legend = TRUE) +
+scale_color_gradient(name="Year", low="blue", high="red")
+```
+
+
+
+
 -----------------------------------------------------------------------------------------
 # Plot on map
 ```{r}
@@ -271,7 +396,7 @@ aes(decimalLongitude, decimalLatitude), alpha=0.6,
 ```
 ```{r}
 # Example: ragweed.
-occ_ragweed <- occ_search(taxonKey=3110576, country = "US", return='data')
+occ_ragweed <- occ_search(taxonKey=3110588, country = "US", return='data')
 world <- map_data("usa")
 ggplot(world, aes(long, lat)) +
 ggtitle("Ragweed") +
@@ -283,7 +408,7 @@ aes(decimalLongitude, decimalLatitude), alpha=0.6,
 ```
 
 ```{r}
-# Example: Bermuda grass.
+# Example: Zika virus.
 occ_Zika <- occ_search(scientificName = "Flavivirus", hasCoordinate = TRUE, return='data')
 world <- map_data("world")
 ggplot(world, aes(long, lat)) +
@@ -293,7 +418,6 @@ geom_polygon(aes(group = group), fill = "white",
 geom_jitter(data = occ_Zika, aes(decimalLongitude, decimalLatitude, color = year), alpha=0.6, size = 3, show.legend = TRUE) +
 scale_color_gradient(name="Year", low="blue", high="red2")
 ```
-
 
 
 Use mapr map_ggplot. This works!
@@ -367,35 +491,85 @@ map_fetch(taxonKey = 3110576, basisOfRecord = c("HUMAN_OBSERVATION", "LIVING_SPE
 
 
 
------------------------------------------------------------------------------------
-name_suggest() is optimized for speed, and gives back suggested names based on query parameters.
-```{r}
-head(name_suggest(q='Puma concolor'))
-```
-
-------------------------------------------------------------------------------------
-
-multiple occurences
-```{r}
-occ_get(key=c(101010, 240713150, 855998194), return='data')
-```
-
-???what's datasetkey???
-```{r}
-occ_count(datasetKey='9e7ea106-0bf8-4087-bb61-dfe4f29e0f17')
-```
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------
 # download experiment
+```{r}
+user <- "namiko"
+pwd <- "735seibutsu"
+email <- "nm0076@mix.wvu.edu"
+```
 
-> user <- "namiko"
-> pwd <- "735seibutsu"
-> email <- "nm0076@mix.wvu.edu"
-> occ_download('taxonKey = 3119195', user = user, pwd = pwd, email = email)
+Prepare for download.
+simple_csv:X
+SPECIES_LIST:X no coordinate
+DWCA: works!
+# DWCA
+```{r}
+#Ambrosia aptera:3110588L
+#DWCA
+dl_DWCA <- occ_download('taxonKey = 3110588', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
+dl_DWCA
+```
+Wait for 15 min!?
+Save file to your computer.
+```{r}
+# key: "0007911-191105090559680"
+# File 413 KB Simple
+# Involved datasets 84
+# Occurrences 5,695
+occ_download_get(key = dl_DWCA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+```
+Import
+```{r}
+res <- occ_download_get(key = dl_DWCA, path = "./", overwrite=TRUE)
+DWCA_data <- occ_download_import(res)
+```
+237 columns!
+lat.long.data decimalLatitude, decimalLongitude
+specify columns and extract them?
 
 
-
+# SPECIES_LIST
+```{r}
+#Ambrosia aptera:3110588L
+#SPECIES_LIST
+dl_SPECIES_LIST <- occ_download('taxonKey = 3110588', 'country = US', format = "SPECIES_LIST", user = user, pwd = pwd, email = email)
+dl_SPECIES_LIST
+```
+Wait for 15 min!?
+Save file to your computer.
+```{r}
+# key: "0007912-191105090559680"
+# File 413 KB Simple
+# Involved datasets 84
+# Occurrences 5,695
+occ_download_get(key = dl_SPECIES_LIST, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+```
+Import?
+```{r}
+res <- occ_download_get(key = dl_SPECIES_LIST, path = "./", overwrite=TRUE)
+SPECIES_LIST_data <- occ_download_import(res)
+SPECIES_LIST_data
+```
