@@ -1,8 +1,8 @@
 # GBIF
-GBIF (Global Biodiversity Information Facility https://www.gbif.org/) is an open access biodiversity database. This is an intergovermental database started in 2001, and is currently contributed by 97 countries with over 1500 publishers (mainly universities, museums, scientific institutions).
+GBIF (Global Biodiversity Information Facility https://www.gbif.org/) is an open-access biodiversity database. This is an intergovernmental database that started in 2001 and is currently contributed by 97 countries with over 1500 publishers (mainly universities, museums, scientific institutions).
 
 #rgbif
-rgbif is an R package to communicate with GBIF, that let you search for information of any taxonomic group of your interest, and count or download their occurence records.
+rgbif is an R package to communicate with GBIF, that let you search for information of any taxonomic group of your interest, and count or download their occurrence records.
 
 
 ----------------------------------------------------------------------------------------------
@@ -16,8 +16,8 @@ library(rgbif)
 
 
 ----------------------------------------------------------------------------------------------
-# Count occurence records
-`occ_count()` will simply let you count occurence records in GBIF with various arguments.
+# Count occurrence records
+`occ_count()` will simply let you count occurrence records in GBIF with various arguments.
 
 e.g. 
 ```{r}
@@ -100,7 +100,7 @@ Acceptable set of search conditions.
 
 
 
-# How to get "taxonkey"?
+# How to get "Taxon key"?
 Taxon key can be obtained from a result of `name_backbone()`.
 ```{r}
 name_backbone(name='Ambrosia aptera', rank = "species")
@@ -145,8 +145,8 @@ isocodes[grep("^United States$", isocodes$name), "code"]
 
 
 
-# Search for occurence records
-`occ_search()` will return up to 500 occurence records that are defined in its' argumentation.
+# Search for occurrence records
+`occ_search()` will return up to 500 occurrence records that are defined in its' argumentation.
 
 occ_search() arguments:
 taxonKey = NULL, scientificName = NULL, country = NULL, publishingCountry = NULL, hasCoordinate = NULL, typeStatus = NULL, recordNumber = NULL, lastInterpreted = NULL, continent = NULL, geometry = NULL, geom_big = "asis", geom_size = 40, geom_n = 10, recordedBy = NULL, basisOfRecord = NULL, datasetKey = NULL, eventDate = NULL, catalogNumber = NULL, year = NULL, month = NULL, decimalLatitude = NULL, decimalLongitude = NULL, elevation = NULL, depth = NULL, institutionCode = NULL, collectionCode = NULL, hasGeospatialIssue = NULL, issue = NULL, search = NULL, mediaType = NULL, subgenusKey = NULL, repatriated = NULL, phylumKey = NULL, kingdomKey = NULL, classKey = NULL, orderKey = NULL, familyKey = NULL, genusKey = NULL, establishmentMeans = NULL, protocol = NULL, license = NULL, organismId = NULL, publishingOrg = NULL, stateProvince = NULL, waterBody = NULL, locality = NULL, limit = 500, start = 0, fields = "all", return = "all", spellCheck = NULL, facet = NULL, facetMincount = NULL, facetMultiselect = NULL, skip_validate = TRUE, curlopts = list(),...
@@ -166,8 +166,8 @@ head(occurrence_data)
 
 
 
-# Obtain occurence records >500
-In order to download a large occurence records at once, you need a GBIF account. Store your user name, passward, and email address as your environmental variables (.Rprofile, .Renviron) or simply set them as R objects.
+# Obtain occurrence records >500
+In order to download large occurrence records at once, you need a GBIF account. Store your user name, password, and email address as your environmental variables (.Rprofile, .Renviron) or simply set them as R objects.
 ```{r}
 user <- "namiko"
 pwd <- "735seibutsu"
@@ -189,8 +189,8 @@ Now, you have to wait for a while, from a few minutes up to 3 hours, depending o
 Check the status in https://www.gbif.org/user/download
 
 
-2. Fetch the data from database
-By using the download key provided by `occ_download()`, you can now download the large occurence data from the GBIF to your workspace or save them to your computer as a ZIP file. 
+2. Fetch the data from the database
+By using the download key provided by `occ_download()`, you can now download the large occurrence data from the GBIF to your workspace or save them to your computer as a ZIP file. 
 
 e.g. Import data into environment
 ```{r}
@@ -210,11 +210,11 @@ occ_download_get(key = dl_Ambrosia_USA, path = "./", overwrite = TRUE,  curlopts
 
 
 # Get citation infomation of the data.
-`gbif_citation()` will provide a list of all citations for the datasets that contribute to your occurence records. The input can be the result of `occ_search()`, `occ_download_get()`, etc.
+`gbif_citation()` will provide a list of all citations for the datasets that contribute to your occurrence records. The input can be the result of `occ_search()`, `occ_download_get()`, etc.
 ```{r}
 # Country code
 usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
-# Occurence records
+# Occurrence records
 occurrence_data <- occ_search(scientificName = "Ambrosia intergradiens", country=usa_code, hasCoordinate = TRUE, return='data')
 
 gbif_citation(occurrence_data)
@@ -232,8 +232,8 @@ gbif_photos(media_data, which='table')
 
 
 
-# Plot occurence data on map
-rgbif has a mapping function called `map_fetch()` but it's still under development. Instead, ggplot works well with the occurence records obtained from GBIF.
+# Plot occurrence data on a map
+rgbif has a mapping function called `map_fetch()` but it's still under development. Instead, ggplot works well with the occurrence records obtained from GBIF.
 ```{r}
 library(ggplot2)
 ```
