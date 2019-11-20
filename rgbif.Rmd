@@ -1,1 +1,278 @@
+# GBIF
+GBIF (Global Biodiversity Information Facility https://www.gbif.org/) is an open-access biodiversity database. This is an intergovernmental database that started in 2001 and is currently contributed by 97 countries with over 1500 publishers (mainly universities, museums, scientific institutions).
 
+# rgbif
+rgbif is an R package to communicate with GBIF, that let you search for information of any taxonomic groups of your interest, and count or download occurrence records.
+
+
+---------------------------------------------------------------------------------------------------------------
+Installation
+```
+install.packages("rgbif")
+```
+```{r library rgbif}
+library(rgbif)
+```
+
+
+---------------------------------------------------------------------------------------------------------------
+# Count occurrence records
+`occ_count()` will simply let you count occurrence records in GBIF with various arguments.
+
+e.g. 
+```{r}
+# Count by observation types.
+occ_count(basisOfRecord='HUMAN_OBSERVATION')
+occ_count(basisOfRecord='MACHINE_OBSERVATION')
+occ_count(basisOfRecord='LITERATURE')
+occ_count(basisOfRecord='LIVING_SPECIMEN')
+occ_count(basisOfRecord='FOSSIL_SPECIMEN')
+
+# Count records that have lat/long data.
+occ_count(georeferenced = TRUE)
+
+# Count records in a specific year.
+occ_count(year = 2012)
+
+# Count data for a specific taxa.
+# Taxa: genus *Ambrosia* (ragweed)
+# Taxon key: 3110576
+occ_count(taxonKey=3110576)
+
+# Count data for a country.
+# Country: United States
+# Country code: US
+occ_count(country = "US")
+```
+
+You can combine multiple data conditions in the `occ_count()` arguments.
+e.g. Count records of ragweed in USA with lat/long data.
+```{r}
+# Observation type: Human Observation
+# Country: United States (country code = US)
+# Taxon: *Ambrosia* (taxonKey= 3110576)
+# Has long/lat data (currently server error)
+occ_count(basisOfRecord='HUMAN_OBSERVATION', country = "US", taxonKey=3110588)
+```
+Acceptable set of search conditions.
+• basisOfRecord, country
+• basisOfRecord, country, isGeoreferenced
+• basisOfRecord, country, isGeoreferenced, taxonKey
+• basisOfRecord, country, taxonKey
+• basisOfRecord, datasetKey
+• basisOfRecord, datasetKey, isGeoreferenced
+• basisOfRecord, datasetKey, isGeoreferenced, taxonKey
+• basisOfRecord, datasetKey, taxonKey
+• basisOfRecord, isGeoreferenced, taxonKey
+• basisOfRecord, isGeoreferenced, publishingCountry
+• basisOfRecord, isGeoreferenced, publishingCountry, taxonKey
+• basisOfRecord, publishingCountry
+• basisOfRecord, publishingCountry, taxonKey
+• basisOfRecord, taxonKey
+• country
+• country, datasetKey, isGeoreferenced
+• country, isGeoreferenced
+• country, isGeoreferenced, publishingCountry
+• country, isGeoreferenced, taxonKey
+• country, publishingCountry
+• country, taxonKey
+• country, typeStatus
+• datasetKey
+• datasetKey, isGeoreferenced
+• datasetKey, isGeoreferenced, taxonKey
+• datasetKey, issue
+• datasetKey, taxonKey
+• datasetKey, typeStatus
+• isGeoreferenced
+• isGeoreferenced, publishingCountry
+• isGeoreferenced, publishingCountry, taxonKey
+• isGeoreferenced, taxonKey
+• issue
+• publishingCountry
+• publishingCountry, taxonKey
+• publishingCountry, typeStatus
+• taxonKey
+• taxonKey, typeStatus
+• typeStatus
+• protocol
+• year
+
+
+
+
+# How to get "Taxon key"?
+Taxon key can be obtained from a result of `name_backbone()`.
+```{r}
+name_backbone(name='Ambrosia aptera', rank = "species")
+```
+
+e.g. Taxon keys for genus *Ambrosia* and its' species *aptera*.
+```{r}
+name_backbone(name='Ambrosia', rank = "genus")$genusKey
+name_backbone(name='Ambrosia aptera', rank = "species")$speciesKey
+```
+
+
+If you are unsure about taxonomic names and their usages in the GBIF system, you can look them up with `name_suggest()` by putting partial names. 
+```{r}
+suggest <- name_suggest(q='Ambro')
+head(suggest)
+```
+You can confine output result within specific taxonomic rank.
+```{r}
+suggest_gen <- name_suggest(q='Ambro', rank = "genus")
+head(suggest_gen)
+```
+If you need more detailed classification of the group, `name_usage()` will return more information.
+```{r}
+usage <- name_usage(name = "Ambrodiscus", return = "data")
+head(usage)
+```
+
+
+
+
+# How to get "country code"?
+Country codes are stored in "isocodes", a data.frame that comes with rgbif package.
+```{r}
+head(isocodes)
+```
+e.g Country code for United States in the GBIF system.
+```{r}
+isocodes[grep("^United States$", isocodes$name), "code"]
+```
+
+
+
+
+# Search for occurrence records
+`occ_search()` will return up to 500 occurrence records that are defined in its' argumentation.
+
+occ_search() arguments:
+taxonKey = NULL, scientificName = NULL, country = NULL, publishingCountry = NULL, hasCoordinate = NULL, typeStatus = NULL, recordNumber = NULL, lastInterpreted = NULL, continent = NULL, geometry = NULL, geom_big = "asis", geom_size = 40, geom_n = 10, recordedBy = NULL, basisOfRecord = NULL, datasetKey = NULL, eventDate = NULL, catalogNumber = NULL, year = NULL, month = NULL, decimalLatitude = NULL, decimalLongitude = NULL, elevation = NULL, depth = NULL, institutionCode = NULL, collectionCode = NULL, hasGeospatialIssue = NULL, issue = NULL, search = NULL, mediaType = NULL, subgenusKey = NULL, repatriated = NULL, phylumKey = NULL, kingdomKey = NULL, classKey = NULL, orderKey = NULL, familyKey = NULL, genusKey = NULL, establishmentMeans = NULL, protocol = NULL, license = NULL, organismId = NULL, publishingOrg = NULL, stateProvince = NULL, waterBody = NULL, locality = NULL, limit = 500, start = 0, fields = "all", return = "all", spellCheck = NULL, facet = NULL, facetMincount = NULL, facetMultiselect = NULL, skip_validate = TRUE, curlopts = list(),...
+
+
+e.g.
+Taxon: *Ambrosia intergradiens*
+Country: Unites States
+```{r}
+# Country Code
+usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
+
+occurrence_data <- occ_search(scientificName = "Ambrosia intergradiens", country=usa_code, hasCoordinate = TRUE, return='data')
+head(occurrence_data)
+```
+
+
+
+
+# Obtain occurrence records >500
+In order to download large occurrence records at once, you need a GBIF account. Store your user name, password, and email address as your environmental variables (GBIF_USER.Renviron, GBIF_PWD.Renviron, GBIF_EMAIL.Renviron) or simply set them as R objects.
+```{r}
+# set username, password, and email address as objects.
+user <- "YOUR USERNAME"
+pwd <- "PASSWORD"
+email <- "EMAIL ADDRESS"
+```
+
+1. Make a download request
+First, you need to make a download request to the GBIF by using `occ_download()` and let the database compile the data for you. For downloading format, you can choose one from DWCA(Darwin Core Archive), SIMPLE_CSV, and SPECIES_LIST.
+
+e.g.
+Taxon: genus *Ambrosia* (key = 3110576)
+Country: United States (code = US)
+Download format: Darwin Core Archive
+```{r}
+dl_Ambrosia_USA <- occ_download('taxonKey = 3110576', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
+dl_Ambrosia_USA
+```
+Now, you have to wait for a while, from a few minutes up to 3 hours, depending on the amount of data you requested. 
+Check the status in https://www.gbif.org/user/download
+
+
+2. Fetch the data from the database
+By using the download key provided by `occ_download()`, you can now download the large occurrence data from the GBIF and save them to your computer as a ZIP file or set as an object in your workspace. 
+
+e.g. Save as a ZIP file
+```{r}
+# Download key
+dl_Ambrosia_USA <- "0010746-191105090559680"
+
+# occ_download_get(): saves data as a zipfile
+occ_download_get(key = dl_Ambrosia_USA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+```
+e.g. Import data into environment
+```{r}
+# occ_download_import(): import data into your workspace
+Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
+head(Ambrosia_USA)
+```
+
+
+# Get citation infomation of the data.
+`gbif_citation()` will provide a list of all citations for the datasets that contribute to your occurrence records. The input can be the result of `occ_search()`, `occ_download_get()`, etc.
+```{r}
+# Country code
+usa_code <- isocodes[grep("^United States$", isocodes$name), "code"]
+# Occurrence records
+occurrence_data <- occ_search(scientificName = "Ambrosia intergradiens", country=usa_code, hasCoordinate = TRUE, return='data')
+
+gbif_citation(occurrence_data)
+```
+
+
+
+
+# Browse photos
+```{r eval=FALSE, include=FALSE}
+media_data <- occ_search(scientificName = "Ambrosia", country = usa_code, mediaType = 'StillImage', return = "media")
+gbif_photos(media_data, which='table')
+```
+
+
+
+
+# Plot occurrence data on a map
+rgbif has a mapping function called `map_fetch()` but it's still under development. Instead, ggplot works well with the occurrence records obtained from GBIF.
+```{r}
+library(ggplot2)
+```
+
+e.g. Spread of Zika virus, plotted by year. 
+```
+# Download request
+dl_ZikaVirus <- occ_download('taxonKey = 9848767', format = "DWCA", user = user, pwd = pwd, email = email)
+```
+```{r}
+# Import dowloaded data into environtment
+dl_ZikaVirus <- "0007974-191105090559680"
+occ_download_get(key = dl_ZikaVirus, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+ZikaVirus_world <- occ_download_import(key =dl_ZikaVirus)
+
+# Plot with ggplot2
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+ggtitle("Spread of Zika virus -2019") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = ZikaVirus_world, aes(decimalLongitude, decimalLatitude, color = year), alpha=1, size = 3, show.legend = TRUE) +
+scale_color_gradient(name="Year", low="steelblue1", high="red2")
+```
+
+e.g. Ragweed (genus *Ambrosia*) distribution in USA. 
+```{r eval=FALSE, include=FALSE}
+# Download data
+dl_Ambrosia_USA <- occ_download('taxonKey = 3110576', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
+Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
+```
+```{r}
+# Plot with ggplot2
+usa <- map_data("usa")
+ggplot(usa, aes(long, lat)) +
+ggtitle("Species distribution of ragweed (genus Ambrosia)") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = Ambrosia_USA, aes(decimalLongitude, decimalLatitude, color = specificEpithet), alpha=1, size = 1, show.legend = TRUE) +
+coord_map(xlim = c(-130, -60), ylim = c(20, 50)) +
+theme(legend.position="bottom", legend.box = "horizontal", legend.text  = element_text(size = 7), legend.key.size = unit(0.1, "lines"))
+```
