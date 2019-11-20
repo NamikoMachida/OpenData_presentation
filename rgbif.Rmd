@@ -1,13 +1,13 @@
 # GBIF
 GBIF (Global Biodiversity Information Facility https://www.gbif.org/) is an open-access biodiversity database. This is an intergovernmental database that started in 2001 and is currently contributed by 97 countries with over 1500 publishers (mainly universities, museums, scientific institutions).
 
-#rgbif
-rgbif is an R package to communicate with GBIF, that let you search for information of any taxonomic group of your interest, and count or download their occurrence records.
+# rgbif
+rgbif is an R package to communicate with GBIF, that let you search for information of any taxonomic groups of your interest, and count or download occurrence records.
 
 
-----------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
 Installation
-```{r eval=FALSE, include=FALSE}
+```
 install.packages("rgbif")
 ```
 ```{r library rgbif}
@@ -15,7 +15,7 @@ library(rgbif)
 ```
 
 
-----------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
 # Count occurrence records
 `occ_count()` will simply let you count occurrence records in GBIF with various arguments.
 
@@ -45,14 +45,14 @@ occ_count(taxonKey=3110576)
 occ_count(country = "US")
 ```
 
-You can combine multiple data conditions in occ_count arguments.
+You can combine multiple data conditions in the `occ_count()` arguments.
 e.g. Count records of ragweed in USA with lat/long data.
 ```{r}
 # Observation type: Human Observation
 # Country: United States (country code = US)
 # Taxon: *Ambrosia* (taxonKey= 3110576)
-# Has long/lat data
-occ_count(basisOfRecord='HUMAN_OBSERVATION', country = "US", taxonKey=3110588, georeferenced = TRUE)
+# Has long/lat data (currently server error)
+occ_count(basisOfRecord='HUMAN_OBSERVATION', country = "US", taxonKey=3110588)
 ```
 Acceptable set of search conditions.
 • basisOfRecord, country
@@ -167,11 +167,12 @@ head(occurrence_data)
 
 
 # Obtain occurrence records >500
-In order to download large occurrence records at once, you need a GBIF account. Store your user name, password, and email address as your environmental variables (.Rprofile, .Renviron) or simply set them as R objects.
+In order to download large occurrence records at once, you need a GBIF account. Store your user name, password, and email address as your environmental variables (GBIF_USER.Renviron, GBIF_PWD.Renviron, GBIF_EMAIL.Renviron) or simply set them as R objects.
 ```{r}
-user <- "namiko"
-pwd <- "735seibutsu"
-email <- "nm0076@mix.wvu.edu"
+# set username, password, and email address as objects.
+user <- ""
+pwd <- ""
+email <- ""
 ```
 
 1. Make a download request
@@ -190,23 +191,22 @@ Check the status in https://www.gbif.org/user/download
 
 
 2. Fetch the data from the database
-By using the download key provided by `occ_download()`, you can now download the large occurrence data from the GBIF to your workspace or save them to your computer as a ZIP file. 
+By using the download key provided by `occ_download()`, you can now download the large occurrence data from the GBIF and save them to your computer as a ZIP file or set as an object in your workspace. 
 
-e.g. Import data into environment
+e.g. Save as a ZIP file
 ```{r}
 # Download key
-dl_Ambrosia_USA <- "0010471-191105090559680"
+dl_Ambrosia_USA <- "0010746-191105090559680"
 
+# occ_download_get(): saves data as a zipfile
+occ_download_get(key = dl_Ambrosia_USA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+```
+e.g. Import data into environment
+```{r}
 # occ_download_import(): import data into your workspace
 Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
 head(Ambrosia_USA)
 ```
-e.g. Save as a file
-```{r}
-# occ_download_get(): saves data as a zipfile
-occ_download_get(key = dl_Ambrosia_USA, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
-```
-
 
 
 # Get citation infomation of the data.
@@ -238,8 +238,29 @@ rgbif has a mapping function called `map_fetch()` but it's still under developme
 library(ggplot2)
 ```
 
-e.g. Ragweed (genus *Ambrosia*) distribution in USA. 
+e.g. Spread of Zika virus, plotted by year. 
 ```
+# Download request
+dl_ZikaVirus <- occ_download('taxonKey = 9848767', format = "DWCA", user = user, pwd = pwd, email = email)
+```
+```{r}
+# Import dowloaded data into environtment
+dl_ZikaVirus <- "0007974-191105090559680"
+occ_download_get(key = dl_ZikaVirus, path = "./", overwrite = TRUE,  curlopts = list(verbose=TRUE))
+ZikaVirus_world <- occ_download_import(key =dl_ZikaVirus)
+
+# Plot with ggplot2
+world <- map_data("world")
+ggplot(world, aes(long, lat)) +
+ggtitle("Spread of Zika virus -2019") +
+geom_polygon(aes(group = group), fill = "white", 
+              color = "black", size = .5) +
+geom_jitter(data = ZikaVirus_world, aes(decimalLongitude, decimalLatitude, color = year), alpha=1, size = 3, show.legend = TRUE) +
+scale_color_gradient(name="Year", low="steelblue1", high="red2")
+```
+
+e.g. Ragweed (genus *Ambrosia*) distribution in USA. 
+```{r eval=FALSE, include=FALSE}
 # Download data
 dl_Ambrosia_USA <- occ_download('taxonKey = 3110576', 'country = US', format = "DWCA", user = user, pwd = pwd, email = email)
 Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
@@ -254,23 +275,4 @@ geom_polygon(aes(group = group), fill = "white",
 geom_jitter(data = Ambrosia_USA, aes(decimalLongitude, decimalLatitude, color = specificEpithet), alpha=1, size = 1, show.legend = TRUE) +
 coord_map(xlim = c(-130, -60), ylim = c(20, 50)) +
 theme(legend.position="bottom", legend.box = "horizontal", legend.text  = element_text(size = 7), legend.key.size = unit(0.1, "lines"))
-```
-
-e.g. Spread of Zika virus, plotted by year. 
-```
-dl_ZikaVirus <- occ_download('taxonKey = 9848767', format = "DWCA", user = user, pwd = pwd, email = email)
-```
-```{r}
-# Import dowloaded data into environtment
-dl_ZikaVirus <- "0007974-191105090559680"
-ZikaVirus_world <- occ_download_import(key =dl_ZikaVirus)
-
-# Plot with ggplot2
-world <- map_data("world")
-ggplot(world, aes(long, lat)) +
-ggtitle("Spread of Zika virus -2019") +
-geom_polygon(aes(group = group), fill = "white", 
-              color = "black", size = .5) +
-geom_jitter(data = ZikaVirus_world, aes(decimalLongitude, decimalLatitude, color = year), alpha=1, size = 3, show.legend = TRUE) +
-scale_color_gradient(name="Year", low="steelblue1", high="red2")
 ```
