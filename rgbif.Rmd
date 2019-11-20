@@ -170,9 +170,9 @@ head(occurrence_data)
 In order to download large occurrence records at once, you need a GBIF account. Store your user name, password, and email address as your environmental variables (GBIF_USER.Renviron, GBIF_PWD.Renviron, GBIF_EMAIL.Renviron) or simply set them as R objects.
 ```{r}
 # set username, password, and email address as objects.
-user <- ""
-pwd <- ""
-email <- ""
+user <- "YOUR USERNAME"
+pwd <- "PASSWORD"
+email <- "EMAIL ADDRESS"
 ```
 
 1. Make a download request
