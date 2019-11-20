@@ -195,7 +195,7 @@ By using the download key provided by `occ_download()`, you can now download the
 e.g. Import data into environment
 ```{r}
 # Download key
-dl_Ambrosia_USA <- "0009448-191105090559680"
+dl_Ambrosia_USA <- "0010471-191105090559680"
 
 # occ_download_import(): import data into your workspace
 Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
@@ -248,7 +248,7 @@ Ambrosia_USA <- occ_download_import(key = dl_Ambrosia_USA)
 # Plot with ggplot2
 usa <- map_data("usa")
 ggplot(usa, aes(long, lat)) +
-ggtitle("Species distribution of ragweed (Genus Ambrosia)") +
+ggtitle("Species distribution of ragweed (genus Ambrosia)") +
 geom_polygon(aes(group = group), fill = "white", 
               color = "black", size = .5) +
 geom_jitter(data = Ambrosia_USA, aes(decimalLongitude, decimalLatitude, color = specificEpithet), alpha=1, size = 1, show.legend = TRUE) +
